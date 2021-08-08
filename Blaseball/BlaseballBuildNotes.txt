@@ -1,0 +1,34 @@
+Blaseball
+The Game of [REDACTED] and [REDACTED]
+
+---
+
+Module ID: krazzBlaseball
+
+Created by: krazztar
+Start Date: 2021 July 10
+Publish Date: 2021 August 4
+
+Manual: In Folder
+
+---
+
+2021 August 4, v1.0: Add manual illustration, publish to Steam Workshop
+
+2021 July 31, beta6: Remove interaction punch from all buttons except Submit
+
+2021 July 31, beta5: Add sound and interaction punch to buttons, alter psuedo-randomness
+
+2021 July 26, beta4: Add pseudo-randomness so Weather will change with each Module instance
+
+2021 July 26, beta3: Optimize log text, Change coffee sprites for colorblind support
+
+2021 July 26, beta2: Add prefixes to log
+
+2021 July 25, beta1: Complete the first beta version
+
+2021 July 19, In Development: REMINDER: Change - to —
+
+2021 July 17, In Development: Complete first draft of Manual
+
+2021 July 14, In Development: Complete first draft of Module in Unity
