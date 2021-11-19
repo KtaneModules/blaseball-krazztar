@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KModkit;
+using System.Text.RegularExpressions;
 
 public class blaseballScript : MonoBehaviour
 {
@@ -510,7 +511,7 @@ public class blaseballScript : MonoBehaviour
 
 	void PressButtonLeftAway()
 	{
-		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+		audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttonLeftAway.transform);
 
 		if (awayTeamMenu == 0)
 		{
@@ -532,7 +533,7 @@ public class blaseballScript : MonoBehaviour
 
 	void PressButtonRightAway()
 	{
-		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+		audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttonRightAway.transform);
 
 		if (awayTeamMenu == 26)
 		{
@@ -563,7 +564,7 @@ public class blaseballScript : MonoBehaviour
 
 	void PressButtonLeftHome()
 	{
-		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+		audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttonLeftHome.transform);
 
 		if (homeTeamMenu == 0)
 		{
@@ -585,7 +586,7 @@ public class blaseballScript : MonoBehaviour
 
 	void PressButtonRightHome()
 	{
-		GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, transform);
+		audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, buttonRightHome.transform);
 
 		if (homeTeamMenu == 26)
 		{
@@ -617,7 +618,7 @@ public class blaseballScript : MonoBehaviour
 	void PressButtonSubmit()
 	{
 			buttonSubmit.AddInteractionPunch(.5f);
-			GetComponent<KMAudio>().PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, transform);
+			audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.BigButtonPress, buttonSubmit.transform);
 
 			if (moduleSolved == true)
 			{
@@ -643,4 +644,98 @@ public class blaseballScript : MonoBehaviour
 
 	}
 
+
+	// ------
+
+	// TWITCH PLAYS
+
+	// ------
+
+	#pragma warning disable 414
+	private readonly string TwitchHelpMessage = @"!{0} away/home <team> [Sets the away or home team to the specified team] | !{0} submit [Presses the BLASEBALL button]";
+	#pragma warning restore 414
+	IEnumerator ProcessTwitchCommand(string command)
+	{
+		if (Regex.IsMatch(command, @"^\s*submit\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		{
+			yield return null;
+			buttonSubmit.OnInteract();
+		}
+		string[] parameters = command.Split(' ');
+		if (Regex.IsMatch(parameters[0], @"^\s*away\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        {
+			if (parameters.Length == 1)
+				yield return "sendtochaterror Please specify a team to set as the away team!";
+            else
+            {
+				string team = parameters.Join(" ").Substring(5).ToLower();
+				string[] awayOptions = awayTeamSelected.Select(x => x.ToLower()).ToArray();
+				if (!awayOptions.Contains(team))
+                {
+					yield return "sendtochaterror!f The specified team '" + parameters.Join(" ").Substring(5) + "' is invalid!";
+					yield break;
+                }
+				yield return null;
+				int targetIndex = Array.IndexOf(awayOptions, team);
+				int curIndex = awayTeamMenu;
+				int difference = targetIndex - curIndex;
+				if (Math.Abs(difference) > awayOptions.Length / 2)
+				{
+					difference = Math.Abs(difference) - awayOptions.Length;
+					if (targetIndex < curIndex)
+						difference = -difference;
+				}
+				for (int i = 0; i < Math.Abs(difference); i++)
+                {
+					if (difference > 0)
+						buttonRightAway.OnInteract();
+					else
+						buttonLeftAway.OnInteract();
+					yield return new WaitForSeconds(.1f);
+                }
+			}
+		}
+		if (Regex.IsMatch(parameters[0], @"^\s*home\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		{
+			if (parameters.Length == 1)
+				yield return "sendtochaterror Please specify a team to set as the home team!";
+			else
+			{
+				string team = parameters.Join(" ").Substring(5).ToLower();
+				string[] homeOptions = homeTeamSelected.Select(x => x.ToLower()).ToArray();
+				if (!homeOptions.Contains(team))
+				{
+					yield return "sendtochaterror!f The specified team '" + parameters.Join(" ").Substring(5) + "' is invalid!";
+					yield break;
+				}
+				yield return null;
+				int targetIndex = Array.IndexOf(homeOptions, team);
+				int curIndex = homeTeamMenu;
+				int difference = targetIndex - curIndex;
+				if (Math.Abs(difference) > homeOptions.Length / 2)
+				{
+					difference = Math.Abs(difference) - homeOptions.Length;
+					if (targetIndex < curIndex)
+						difference = -difference;
+				}
+				for (int i = 0; i < Math.Abs(difference); i++)
+				{
+					if (difference > 0)
+						buttonRightHome.OnInteract();
+					else
+						buttonLeftHome.OnInteract();
+					yield return new WaitForSeconds(.1f);
+				}
+			}
+		}
+	}
+
+	// ---
+
+	IEnumerator TwitchHandleForcedSolve()
+    {
+		yield return ProcessTwitchCommand("away " + teamOptions[awaySolve]);
+		yield return ProcessTwitchCommand("home " + teamOptions[homeSolve]);
+		buttonSubmit.OnInteract();
+	}
 }
